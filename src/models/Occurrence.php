@@ -1,16 +1,17 @@
 <?php
+
 /**
  * Calendarize plugin for Craft CMS 3.x
  *
  * Calendar element types
  *
  * @link      https://union.co
+ *
  * @copyright Copyright (c) 2018 Franco Valdes
  */
 
-namespace unionco\calendarize\models;
+namespace mostlyserious\calendarize\models;
 
-use Craft;
 use DateTime;
 use ReflectionClass;
 use craft\base\Element;
@@ -40,9 +41,6 @@ class Occurrence
      */
     public $end;
 
-    /**
-     *
-     */
     public function __construct(Element $element, DateTime $next, int $diff)
     {
         $this->element = $element;
@@ -73,17 +71,11 @@ class Occurrence
         return $this->{$name};
     }
 
-    /**
-     *
-     */
     public function __toString()
     {
         return $this->next->format('U');
     }
 
-    /**
-     *
-     */
     public function getType(): string
     {
         return (new ReflectionClass($this->element))->getShortName();

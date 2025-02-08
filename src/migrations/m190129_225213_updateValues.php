@@ -1,9 +1,10 @@
 <?php
 
-namespace unionco\calendarize\migrations;
+
+namespace mostlyserious\calendarize\migrations;
 
 use craft\db\Migration;
-use unionco\calendarize\records\CalendarizeRecord;
+use mostlyserious\calendarize\records\CalendarizeRecord;
 
 /**
  * m190129_225213_updateValues migration.
@@ -11,7 +12,7 @@ use unionco\calendarize\records\CalendarizeRecord;
 class m190129_225213_updateValues extends Migration
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function safeUp()
     {
@@ -22,12 +23,12 @@ class m190129_225213_updateValues extends Migration
         if (count($records)) {
             foreach ($records as $record) {
                 if (!$record->repeats) {
-                    $record->endRepeat      = null;
-                    $record->endRepeatDate  = null;
-                    $record->repeatType     = null;
-                    $record->days           = null;
-                    $record->months         = null;
-                    $record->timeChanges    = null;
+                    $record->endRepeat = null;
+                    $record->endRepeatDate = null;
+                    $record->repeatType = null;
+                    $record->days = null;
+                    $record->months = null;
+                    $record->timeChanges = null;
 
                     $record->save();
                 }
@@ -36,11 +37,12 @@ class m190129_225213_updateValues extends Migration
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function safeDown()
     {
         echo "m190129_225213_updateValues cannot be reverted.\n";
+
         return false;
     }
 }

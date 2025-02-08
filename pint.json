@@ -1,0 +1,15 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "declare_strict_types": true,
+        "not_operator_with_successor_space": false,
+        "concat_space": { "spacing": "one" },
+        "phpdoc_align": { "align": "vertical" },
+        "phpdoc_trim_consecutive_blank_line_separation": true,
+        "ordered_imports": { "sort_algorithm": "length" },
+        "new_with_parentheses": {
+            "anonymous_class": false,
+            "named_class": true
+        }
+    }
+}

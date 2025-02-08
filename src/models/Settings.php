@@ -1,23 +1,22 @@
 <?php
+
 /**
  * Calendarize plugin for Craft CMS 3.x
  *
  * Calendar element types
  *
  * @link      https://union.co
+ *
  * @copyright Copyright (c) 2018 Franco Valdes
  */
 
-namespace unionco\calendarize\models;
+namespace mostlyserious\calendarize\models;
 
-use unionco\calendarize\Calendarize;
-
-use Craft;
 use craft\base\Model;
 
 /**
  * @author    Franco Valdes
- * @package   Calendarize
+ *
  * @since     1.0.0
  */
 class Settings extends Model
@@ -34,7 +33,7 @@ class Settings extends Model
     // =========================================================================
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function rules(): array
     {

@@ -1,28 +1,30 @@
 <?php
+
 /**
  * Calendarize plugin for Craft CMS 3.x
  *
  * Calendar element types
  *
  * @link      https://union.co
+ *
  * @copyright Copyright (c) 2018 Franco Valdes
  */
 
-namespace unionco\calendarize\models;
+namespace mostlyserious\calendarize\models;
 
 use Craft;
-use craft\base\Model;
-use craft\helpers\DateTimeHelper;
-use craft\helpers\Json;
 use DateTime;
-use DateTimeZone;
-use RRule\RRule;
 use RRule\RSet;
-use unionco\calendarize\Calendarize;
+use RRule\RRule;
+use DateTimeZone;
+use craft\base\Model;
+use craft\helpers\Json;
+use craft\helpers\DateTimeHelper;
+use mostlyserious\calendarize\Calendarize;
 
 /**
  * @author    Franco Valdes
- * @package   Calendarize
+ *
  * @since     1.0.0
  */
 class CalendarizeModel extends Model
@@ -34,22 +36,36 @@ class CalendarizeModel extends Model
      * @var string
      */
     private $owner;
+
     public $ownerId;
+
     public $ownerSiteId;
+
     public $fieldId;
+
     public $startDate;
+
     public $endDate;
+
     public $allDay = false;
+
     public $repeats = false;
+
     public $days = [];
+
     public $endRepeat = 'never';
+
     public $endRepeatDate;
+
     public $exceptions = [];
+
     public $timeChanges = [];
+
     public $repeatType = 'week';
+
     public $months = null;
 
-    static protected $RRULEMAP = [
+    protected static $RRULEMAP = [
         'daily' => 'DAILY',
         'weekly' => 'WEEKLY',
         'biweekly' => 'WEEKLY',
@@ -57,14 +73,14 @@ class CalendarizeModel extends Model
         'yearly' => 'YEARLY',
     ];
 
-    static protected $RRULEDAYMAP = [
-        0 => "SU",
-        1 => "MO",
-        2 => "TU",
-        3 => "WE",
-        4 => "TH",
-        5 => "FR",
-        6 => "SA",
+    protected static $RRULEDAYMAP = [
+        0 => 'SU',
+        1 => 'MO',
+        2 => 'TU',
+        3 => 'WE',
+        4 => 'TH',
+        5 => 'FR',
+        6 => 'SA',
     ];
 
     // Private Properties
@@ -76,10 +92,10 @@ class CalendarizeModel extends Model
     // Public Methods
     // =========================================================================
     public function __construct($owner, $attributes = [], array $config = [])
-	{
-		foreach ($attributes as $key => $value) {
-			if (property_exists($this, $key)) {
-				switch ($key) {
+    {
+        foreach ($attributes as $key => $value) {
+            if (property_exists($this, $key)) {
+                switch ($key) {
                     case 'startDate':
                     case 'endDate':
                     case 'endRepeatDate':
@@ -113,21 +129,19 @@ class CalendarizeModel extends Model
         }
 
         $this->owner = $owner;
-		parent::__construct($config);
+        parent::__construct($config);
     }
 
     /**
-	 * @inheritdoc
-	 */
-	public function isValueEmpty($value, ElementInterface $element): bool
-	{
-	    return (empty($value->startDate) && empty($value->endDate));
+     * {@inheritdoc}
+     */
+    public function isValueEmpty($value, ElementInterface $element): bool
+    {
+        return empty($value->startDate) && empty($value->endDate);
     }
 
     /**
      * Returns the calendar next occurrence
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -155,7 +169,7 @@ class CalendarizeModel extends Model
      */
     public function ends()
     {
-        return $this->endRepeat !== "never";
+        return $this->endRepeat !== 'never';
     }
 
     /**
@@ -226,7 +240,7 @@ class CalendarizeModel extends Model
 
         $this->_adjustTimeChanges($occurrences);
 
-        return array_map(function($occurrence) use($diff) {
+        return array_map(function ($occurrence) use ($diff) {
             return new Occurrence($this->owner, $occurrence, $diff);
         }, $occurrences);
     }
@@ -236,7 +250,6 @@ class CalendarizeModel extends Model
      *
      * @param startDate string|Datetime
      * @param startDate string|Datetime
-     *
      * @return array
      */
     public function getOccurrencesBetween($startDate, $endDate = null, $limit = 1)
@@ -258,7 +271,7 @@ class CalendarizeModel extends Model
 
         $this->_adjustTimeChanges($occurrences);
 
-        return array_map(function($occurrence) use($diff) {
+        return array_map(function ($occurrence) use ($diff) {
             return new Occurrence($this->owner, $occurrence, $diff);
         }, $occurrences);
     }
@@ -266,7 +279,7 @@ class CalendarizeModel extends Model
     /**
      * Boolean if the element has passed
      *
-     * @return boolean
+     * @return bool
      */
     public function hasPassed()
     {
@@ -283,7 +296,6 @@ class CalendarizeModel extends Model
      * Gets the readable string from rrule
      *
      * @param opts array
-     *
      * @return string
      */
     public function readable(array $opts = [])
@@ -291,6 +303,7 @@ class CalendarizeModel extends Model
         if ($this->repeats) {
             return $this->rrule()->getRRules()[0]->humanReadable($opts);
         }
+
         return '';
     }
 
@@ -301,13 +314,13 @@ class CalendarizeModel extends Model
      */
     public function rrule()
     {
-        if (null === $this->occurrenceCache) {
+        if ($this->occurrenceCache === null) {
             if ($this->repeats) {
                 $config = [
-                    'FREQ'       => strtoupper(static::$RRULEMAP[$this->repeatType]),
-                    'INTERVAL'   => 1,
-                    'DTSTART'    => $this->startDate,
-                    'UNTIL'      => $this->endRepeat !== 'never' ? $this->endRepeatDate ?? $this->startDate : null
+                    'FREQ' => strtoupper(static::$RRULEMAP[$this->repeatType]),
+                    'INTERVAL' => 1,
+                    'DTSTART' => $this->startDate,
+                    'UNTIL' => $this->endRepeat !== 'never' ? $this->endRepeatDate ?? $this->startDate : null,
                 ];
 
                 if ($this->endRepeat === 'never') {
@@ -321,10 +334,10 @@ class CalendarizeModel extends Model
                 }
             } else {
                 $config = [
-                    'FREQ'       => "DAILY",
-                    'INTERVAL'   => 1,
-                    'DTSTART'    => $this->startDate,
-                    'UNTIL'      => $this->startDate
+                    'FREQ' => 'DAILY',
+                    'INTERVAL' => 1,
+                    'DTSTART' => $this->startDate,
+                    'UNTIL' => $this->startDate,
                 ];
                 $this->repeatType = 'daily';
             }
@@ -371,8 +384,8 @@ class CalendarizeModel extends Model
 
     /**
      * Return the ICS url for a specific event
-     * @param array $options
      *
+     * @param  array $options
      * @return mixed
      */
     public function getIcsUrl($options = [])
@@ -382,8 +395,8 @@ class CalendarizeModel extends Model
 
     /**
      * Return the ICS for all events in the parent section
-     * @param array $options
      *
+     * @param  array $options
      * @return mixed
      */
     public function getCalendarIcsUrl($options = [])
@@ -392,7 +405,7 @@ class CalendarizeModel extends Model
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function rules(): array
     {
@@ -402,9 +415,6 @@ class CalendarizeModel extends Model
     // Private Methods
     // =========================================================================
 
-    /**
-     *
-     */
     private function _adjustTimeChanges(&$occurrences = [])
     {
         // set the start time to all occurrences
@@ -424,9 +434,6 @@ class CalendarizeModel extends Model
         }
     }
 
-    /**
-     *
-     */
     private function _adjustTimes(&$occurrences = [])
     {
         // change out times
@@ -435,9 +442,6 @@ class CalendarizeModel extends Model
         }
     }
 
-    /**
-     *
-     */
     private function _setDateType($value)
     {
         if (isset($value) && !empty($value)) {
@@ -452,6 +456,7 @@ class CalendarizeModel extends Model
 
             return DateTimeHelper::toDateTime($value);
         }
+
         return null;
     }
 }

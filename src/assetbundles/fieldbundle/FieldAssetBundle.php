@@ -1,22 +1,23 @@
 <?php
+
 /**
  * Calendarize plugin for Craft CMS 3.x
  *
  * Calendar element types
  *
  * @link      https://union.co
+ *
  * @copyright Copyright (c) 2018 Franco Valdes
  */
 
-namespace unionco\calendarize\assetbundles\fieldbundle;
+namespace mostlyserious\calendarize\assetbundles\fieldbundle;
 
-use Craft;
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 
 /**
  * @author    Franco Valdes
- * @package   Calendarize
+ *
  * @since     1.0.0
  */
 class FieldAssetBundle extends AssetBundle
@@ -25,11 +26,11 @@ class FieldAssetBundle extends AssetBundle
     // =========================================================================
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function init()
     {
-        $this->sourcePath = "@unionco/calendarize/assetbundles/resources/dist";
+        $this->sourcePath = '@mostlyserious/calendarize/assetbundles/resources/dist';
 
         $this->depends = [
             CpAsset::class,

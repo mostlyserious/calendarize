@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Calendarize plugin for Craft CMS 3.x
  *
  * Calendar element types
  *
  * @link      https://union.co
+ *
  * @copyright Copyright (c) 2018 Franco Valdes
  */
 

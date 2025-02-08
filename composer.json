@@ -1,5 +1,5 @@
 {
-    "name": "unionco/calendarize",
+    "name": "mostlyserious/calendarize",
     "description": "A calendar field type providing functionality for recurrence.",
     "type": "craft-plugin",
     "keywords": [
@@ -10,31 +10,35 @@
         "calendarize"
     ],
     "support": {
-        "docs": "https://github.com/unionco/calendarize",
-        "issues": "https://github.com/unionco/calendarize/issues?state=open"
+        "docs": "https://github.com/mostlyserious/calendarize",
+        "issues": "https://github.com/mostlyserious/calendarize/issues?state=open"
     },
     "license": "MIT",
     "authors": [
         {
             "name": "Franco Valdes",
             "homepage": "https://union.co"
+        },
+        {
+            "name": "Mostly Serious",
+            "homepage": "https://mostlyserious.io"
         }
     ],
     "require": {
-        "craftcms/cms": "^4.0",
+        "craftcms/cms": "^4.0|^5.0",
         "rlanvin/php-rrule": "~1.6.0"
     },
     "autoload": {
         "psr-4": {
-          "unionco\\calendarize\\": "src/"
+          "mostlyserious\\calendarize\\": "src/"
         }
     },
     "extra": {
         "name": "Calendarize",
         "handle": "calendarize",
-        "documentationUrl": "https://github.com/unionco/calendarize/blob/master/README.md",
-        "changelogUrl": "https://raw.githubusercontent.com/unionco/calendarize/master/CHANGELOG.md",
-        "class": "unionco\\calendarize\\Calendarize"
+        "documentationUrl": "https://github.com/mostlyserious/calendarize/blob/master/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/mostlyserious/calendarize/master/CHANGELOG.md",
+        "class": "mostlyserious\\calendarize\\Calendarize"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

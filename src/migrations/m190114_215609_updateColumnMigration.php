@@ -1,10 +1,10 @@
 <?php
 
-namespace unionco\calendarize\migrations;
 
-use Craft;
+namespace mostlyserious\calendarize\migrations;
+
 use craft\db\Migration;
-use unionco\calendarize\records\CalendarizeRecord;
+use mostlyserious\calendarize\records\CalendarizeRecord;
 
 /**
  * m190114_215609_updateColumnMigration migration.
@@ -12,7 +12,7 @@ use unionco\calendarize\records\CalendarizeRecord;
 class m190114_215609_updateColumnMigration extends Migration
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function safeUp()
     {
@@ -23,11 +23,12 @@ class m190114_215609_updateColumnMigration extends Migration
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function safeDown()
     {
         echo "m190114_215609_updateColumnMigration cannot be reverted.\n";
+
         return false;
     }
 }

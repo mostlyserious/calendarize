@@ -1,28 +1,30 @@
 <?php
+
 /**
  * Calendarize plugin for Craft CMS 3.x
  *
  * Calendar element types
  *
  * @link      https://union.co
+ *
  * @copyright Copyright (c) 2018 Franco Valdes
  */
 
-namespace unionco\calendarize\fields;
+namespace mostlyserious\calendarize\fields;
 
 use Craft;
+use craft\base\Field;
 use craft\i18n\Locale;
 use craft\base\Element;
-use craft\base\Field;
 use craft\base\ElementInterface;
-use unionco\calendarize\Calendarize;
 use craft\base\PreviewableFieldInterface;
+use mostlyserious\calendarize\Calendarize;
 use craft\elements\db\ElementQueryInterface;
-use unionco\calendarize\assetbundles\fieldbundle\FieldAssetBundle;
+use mostlyserious\calendarize\assetbundles\fieldbundle\FieldAssetBundle;
 
 /**
  * @author    Franco Valdes
- * @package   Calendarize
+ *
  * @since     1.0.0
  */
 class CalendarizeField extends Field implements PreviewableFieldInterface
@@ -41,15 +43,15 @@ class CalendarizeField extends Field implements PreviewableFieldInterface
     public $endDate;
 
     /**
-     * @var boolean
+     * @var bool
      */
     public $repeats = false;
 
     /**
-     * @var boolean
+     * @var bool
      */
     public $allDay = false;
-    
+
     /**
      * @var array
      */
@@ -58,12 +60,12 @@ class CalendarizeField extends Field implements PreviewableFieldInterface
     /**
      * @var string
      */
-    public $endRepeat = NULL;
+    public $endRepeat = null;
 
     /**
      * @var datetime
      */
-    public $endRepeatDate = NULL;
+    public $endRepeatDate = null;
 
     /**
      * @var array
@@ -78,7 +80,7 @@ class CalendarizeField extends Field implements PreviewableFieldInterface
     /**
      * @var string
      */
-    public $repeatType = NULL;
+    public $repeatType = null;
 
     /**
      * @var string
@@ -89,7 +91,7 @@ class CalendarizeField extends Field implements PreviewableFieldInterface
     // =========================================================================
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public static function displayName(): string
     {
@@ -97,37 +99,38 @@ class CalendarizeField extends Field implements PreviewableFieldInterface
     }
 
     /**
-	 * @inheritdoc
-	 */
-	public static function hasContentColumn(): bool
-	{
-		return false;
+     * {@inheritdoc}
+     */
+    public static function hasContentColumn(): bool
+    {
+        return false;
     }
-    
+
     // Public Methods
     // =========================================================================
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function rules(): array
     {
         $rules = parent::rules();
+
         return $rules;
     }
 
     /**
-	 * @inheritdoc
-	 */
-	public function getElementValidationRules(): array
-	{
-		return [
-			[CalendarizeValidator::class, 'on' => Element::SCENARIO_LIVE],
-		];
-	}
+     * {@inheritdoc}
+     */
+    public function getElementValidationRules(): array
+    {
+        return [
+            [CalendarizeValidator::class, 'on' => Element::SCENARIO_LIVE],
+        ];
+    }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function normalizeValue(mixed $value, ?\craft\base\ElementInterface $element = null): mixed
     {
@@ -135,55 +138,54 @@ class CalendarizeField extends Field implements PreviewableFieldInterface
     }
 
     /**
-	 * @inheritdoc
-	 */
-	public function modifyElementsQuery(ElementQueryInterface $query, mixed $value): void
-	{
-		// For whatever reason, this function can be
-		// run BEFORE Calendarize has been initialized
-		if (!Calendarize::$plugin) {
+     * {@inheritdoc}
+     */
+    public function modifyElementsQuery(ElementQueryInterface $query, mixed $value): void
+    {
+        // For whatever reason, this function can be
+        // run BEFORE Calendarize has been initialized
+        if (!Calendarize::$plugin) {
             return;
         }
 
-		Calendarize::$plugin->calendar->modifyElementsQuery($query, $value);
+        Calendarize::$plugin->calendar->modifyElementsQuery($query, $value);
 
-		return;
     }
 
     /**
-	 * @inheritdoc
-	 */
-	public function afterElementSave(ElementInterface $element, bool $isNew): void
-	{
-		Calendarize::$plugin->calendar->saveField($this, $element);
-		parent::afterElementSave($element, $isNew);
-    }
-
-    /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
+    public function afterElementSave(ElementInterface $element, bool $isNew): void
+    {
+        Calendarize::$plugin->calendar->saveField($this, $element);
+        parent::afterElementSave($element, $isNew);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
         if (empty($value->startDate) && empty($value->endDate)) {
             return '-';
         }
-        
+
         $hr = $value->readable(['locale' => Craft::$app->locale->id]);
         $html = "<span title=\"{$hr}\">";
-        
+
         if ($value->hasPassed()) {
-            $html .= "<b>" . Craft::t('calendarize', 'Last Occurrence') . ":</b>";
+            $html .= '<b>' . Craft::t('calendarize', 'Last Occurrence') . ':</b>';
         } else {
-            $html .= "<b>" . Craft::t('calendarize', 'Next Occurrence') . ":</b>";
+            $html .= '<b>' . Craft::t('calendarize', 'Next Occurrence') . ':</b>';
         }
 
-        $html .= "<br/>" . $value->next()->format('l, m/d/Y @ h:i:s a');
+        $html .= '<br/>' . $value->next()->format('l, m/d/Y @ h:i:s a');
 
         return $html;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getInputHtml(mixed $value, ?\craft\base\ElementInterface $element = null): string
     {
