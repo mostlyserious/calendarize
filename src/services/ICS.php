@@ -108,7 +108,7 @@ class ICS extends Component
 
         $ics = "BEGIN:VEVENT\n" .
         $rule->rfcString() . "\n" .
-        'DTEND;TZID=' . $model->endDate->getTimezone()->getName() . ':' . $model->endDate->format('Ymd\THis') . "\n" .
+        'DTEND;TZID=' . ($model->endDate ?: $model->startDate)->getTimezone()->getName() . ':' . ($model->endDate ?: $model->startDate)->format('Ymd\THis') . "\n" .
         'SUMMARY:' . $this->_escapeString($owner->title) . "\n" .
         "DESCRIPTION:\n" .
         'URL;VALUE=URI:' . $owner->url . "\n" .
