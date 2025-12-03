@@ -16,12 +16,12 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "Franco Valdes",
-            "homepage": "https://union.co"
-        },
-        {
             "name": "Mostly Serious",
             "homepage": "https://mostlyserious.io"
+        },
+        {
+            "name": "Franco Valdes",
+            "homepage": "https://union.co"
         }
     ],
     "require": {
