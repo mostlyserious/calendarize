@@ -16,9 +16,9 @@ use Craft;
 use craft\elements\Entry;
 use craft\web\Controller;
 use craft\records\Section;
+use yii\web\NotFoundHttpException;
 use craft\records\Field as FieldRecord;
 use mostlyserious\calendarize\Calendarize;
-use mostlyserious\calendarize\services\ICS;
 use mostlyserious\calendarize\models\CalendarizeModel;
 use mostlyserious\calendarize\records\CalendarizeRecord;
 
@@ -55,10 +55,24 @@ class DefaultController extends Controller
                 'fieldId' => $fieldId,
             ]
         );
+
+        if (!$record) {
+            $this->handleMissingIcsRequest($ownerId, $ownerSiteId, $fieldId);
+        }
+
         $owner = $record->getOwner()->one();
+
+        if (!$owner) {
+            $this->handleMissingIcsRequest($ownerId, $ownerSiteId, $fieldId);
+        }
+
         $element = $owner->type::find()
             ->id($owner->id)
             ->one();
+
+        if (!$element) {
+            $this->handleMissingIcsRequest($ownerId, $ownerSiteId, $fieldId);
+        }
 
         $model = new CalendarizeModel($element, $record->getAttributes());
         $ics = Calendarize::$plugin->ics->make($model);
@@ -99,5 +113,21 @@ class DefaultController extends Controller
         $response = Craft::$app->getResponse();
 
         return $response->sendFile($ics, null, ['inline' => true]);
+    }
+
+    private function handleMissingIcsRequest(int $ownerId, int $ownerSiteId, int $fieldId): never
+    {
+        Craft::warning(
+            sprintf(
+                'Invalid ICS request for ownerId=%d ownerSiteId=%d fieldId=%d url=%s',
+                $ownerId,
+                $ownerSiteId,
+                $fieldId,
+                Craft::$app->request->absoluteUrl
+            ),
+            __METHOD__
+        );
+
+        throw new NotFoundHttpException('Calendar event not found.');
     }
 }

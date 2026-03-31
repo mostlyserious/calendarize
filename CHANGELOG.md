@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.17 - 2026-03-31
+### Fixed
+- Return a 404 for invalid ICS download requests instead of throwing when the calendar record or owner element is missing.
+
 ## 1.2.16 - 2019-08-29
 ### Updated
 - Updating wording around the repeat frequency closes [#28](https://github.com/unionco/calendarize/issues/28)
