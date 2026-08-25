@@ -109,7 +109,8 @@ class ICS extends Component
                 $ics .= 'DTSTART;VALUE=DATE:' . $model->startDate->format('Ymd') . "\n";
 
                 if (preg_match('/^RRULE:.*$/m', $rule->rfcString(), $matches)) {
-                    $ics .= $matches[0] . "\n";
+                    // UNTIL must match DTSTART's DATE value type
+                    $ics .= preg_replace('/UNTIL=(\d{8})T\d{6}Z?/', 'UNTIL=$1', $matches[0]) . "\n";
                 }
 
                 // DTEND is exclusive for date-only values
