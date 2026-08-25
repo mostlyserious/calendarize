@@ -323,6 +323,12 @@ class CalendarizeModel extends Model
     public function rrule()
     {
         if ($this->occurrenceCache === null) {
+            // align the repeat cutoff to the event start time so UNTIL does
+            // not exclude a final occurrence on the cutoff day itself
+            if ($this->repeats && !empty($this->endRepeatDate) && !empty($this->startDate)) {
+                $this->endRepeatDate->setTime($this->startDate->format('H'), $this->startDate->format('i'));
+            }
+
             if ($this->repeats) {
                 $config = [
                     'FREQ' => strtoupper(static::$RRULEMAP[$this->repeatType]),
