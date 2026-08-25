@@ -12,10 +12,8 @@
 
 namespace mostlyserious\calendarize\services;
 
-use Craft;
 use DateTime;
 use craft\base\Component;
-use craft\helpers\FileHelper;
 use mostlyserious\calendarize\models\CalendarizeModel;
 
 /**
@@ -62,43 +60,38 @@ class ICS extends Component
         return '/actions/calendarize/default/make-section-ics?' . $params;
     }
 
-    public function make(CalendarizeModel $model, $filename = null)
+    /**
+     * Build the ICS document for a single event
+     *
+     * @return string
+     */
+    public function make(CalendarizeModel $model)
     {
-        $owner = $model->getOwner();
-        $rule = $model->rrule()->getRRules()[0];
-        $filename = $filename ? $filename : $owner->slug;
-
-        $cal = "BEGIN:VCALENDAR\n" .
+        return "BEGIN:VCALENDAR\n" .
                 "VERSION:2.0\n" .
                 "PRODID:-//CALENDARIZE Craft //EN\n" .
                 $this->_makeEvent($model);
-
-        $storage = Craft::$app->getPath()->getStoragePath();
-        $path = $storage . '/calendarize/' . $filename . '.ics';
-        $file = FileHelper::writeToFile($path, $cal);
-
-        return $path;
     }
 
-    public function makeEvents($events, $filename = null)
+    /**
+     * Build the ICS document for a list of events
+     *
+     * @param  CalendarizeModel[] $events
+     * @return string
+     */
+    public function makeEvents($events)
     {
-
         $cal = "BEGIN:VCALENDAR\n" .
             "VERSION:2.0\n" .
             "PRODID:-//CALENDARIZE Craft //EN\n";
-        $filename = $filename ? $filename : $events[0]->getOwner()->getsection()->slug;
 
-        foreach ($events as $events) {
-            $cal .= $this->_makeEvent($events);
+        foreach ($events as $event) {
+            $cal .= $this->_makeEvent($event);
         }
 
         $cal .= "END:VCALENDAR\n";
 
-        $storage = Craft::$app->getPath()->getStoragePath();
-        $path = $storage . '/calendarize/' . $filename . '.ics';
-        $file = FileHelper::writeToFile($path, $cal);
-
-        return $path;
+        return $cal;
     }
 
     private function _makeEvent(CalendarizeModel $model)

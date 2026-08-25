@@ -79,7 +79,10 @@ class DefaultController extends Controller
 
         $response = Craft::$app->getResponse();
 
-        return $response->sendFile($ics, null, ['inline' => true]);
+        return $response->sendContentAsFile($ics, $element->slug . '.ics', [
+            'mimeType' => 'text/calendar',
+            'inline' => true,
+        ]);
     }
 
     /**
@@ -128,10 +131,19 @@ class DefaultController extends Controller
             throw new NotFoundHttpException('No calendar events found.');
         }
 
-        $ics = Calendarize::$plugin->ics->makeEvents($events, $filename);
+        $filename = $filename ? preg_replace('/[^A-Za-z0-9_\-]+/', '', $filename) : '';
+
+        if ($filename === '') {
+            $filename = $section->handle;
+        }
+
+        $ics = Calendarize::$plugin->ics->makeEvents($events);
         $response = Craft::$app->getResponse();
 
-        return $response->sendFile($ics, null, ['inline' => true]);
+        return $response->sendContentAsFile($ics, $filename . '.ics', [
+            'mimeType' => 'text/calendar',
+            'inline' => true,
+        ]);
     }
 
     private function handleMissingIcsRequest(int $ownerId, int $ownerSiteId, int $fieldId): never
