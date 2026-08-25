@@ -196,6 +196,9 @@ class CalendarizeModel extends Model
                 if (count($occurrences)) {
                     return $occurrences[0];
                 }
+
+                // the recurrence set is entirely excluded, so nothing occurs
+                return false;
             }
 
             return new Occurrence($this->owner, $this->startDate, $duration);
@@ -295,9 +298,13 @@ class CalendarizeModel extends Model
             return false;
         }
 
-        $next = $this->next()->next;
+        $next = $this->next();
 
-        return DateTimeHelper::isInThePast($next);
+        if (!$next) {
+            return true;
+        }
+
+        return DateTimeHelper::isInThePast($next->next);
     }
 
     /**
