@@ -221,7 +221,7 @@ class CalendarizeService extends Component
             $from = DateTimeHelper::toDateTime(new DateTime($from, new DateTimeZone(Craft::$app->getTimeZone())));
         }
 
-        $cacheHash = md5(($from->format('YmdH')) . (Json::encode($criteria)));
+        $cacheHash = md5(($from->format('YmdHis')) . (Json::encode($criteria)));
 
         if ($this->entryCache === null || !isset($this->entryCache[$cacheHash])) {
             $query = CalendarizeRecord::find();
