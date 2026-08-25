@@ -104,11 +104,11 @@ class CalendarizeService extends Component
         $allOccurrences = [];
 
         foreach ($entries as $key => $entry) {
-            $fields = $entry->getFieldLayout()->getCustomFields();
-            $fieldIndex = array_search(CalendarizeField::class, array_map(function ($field) {
-                return get_class($field);
-            }, $fields));
-            $fieldHandle = $fields[$fieldIndex]->handle;
+            $fieldHandle = $this->_calendarizeFieldHandle($entry);
+
+            if ($fieldHandle === null) {
+                continue;
+            }
 
             $occurrences = $entry->{$fieldHandle}->getOccurrencesBetween($date, null, $unique ? 1 : null);
 
@@ -159,11 +159,11 @@ class CalendarizeService extends Component
         $allOccurrences = [];
 
         foreach ($entries as $key => $entry) {
-            $fields = $entry->getFieldLayout()->getCustomFields();
-            $fieldIndex = array_search(CalendarizeField::class, array_map(function ($field) {
-                return get_class($field);
-            }, $fields));
-            $fieldHandle = $fields[$fieldIndex]->handle;
+            $fieldHandle = $this->_calendarizeFieldHandle($entry);
+
+            if ($fieldHandle === null) {
+                continue;
+            }
 
             $occurrences = $entry->{$fieldHandle}->getOccurrencesBetween($start, $end, $unique ? 1 : null);
 
@@ -200,6 +200,23 @@ class CalendarizeService extends Component
     }
 
     /**
+     * Returns the handle of the entry's Calendarize field, if it has one
+     *
+     * @param  Entry   $entry
+     * @return ?string
+     */
+    private function _calendarizeFieldHandle($entry)
+    {
+        foreach ($entry->getFieldLayout()->getCustomFields() as $field) {
+            if ($field instanceof CalendarizeField) {
+                return $field->handle;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Get entries with future occurrence
      *
      * @param criteria mixed
@@ -211,7 +228,7 @@ class CalendarizeService extends Component
             $from = DateTimeHelper::toDateTime(new DateTime($from, new DateTimeZone(Craft::$app->getTimeZone())));
         }
 
-        $cacheHash = md5(($from->format('YmdH')) . (Json::encode($criteria)));
+        $cacheHash = md5(($from->format('YmdHis')) . (Json::encode($criteria)));
 
         if ($this->entryCache === null || !isset($this->entryCache[$cacheHash])) {
             $query = CalendarizeRecord::find();

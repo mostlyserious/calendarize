@@ -133,14 +133,6 @@ class CalendarizeModel extends Model
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function isValueEmpty($value, ElementInterface $element): bool
-    {
-        return empty($value->startDate) && empty($value->endDate);
-    }
-
-    /**
      * Returns the calendar next occurrence
      */
     public function __toString(): string

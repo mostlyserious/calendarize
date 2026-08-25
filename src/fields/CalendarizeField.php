@@ -140,6 +140,14 @@ class CalendarizeField extends Field implements PreviewableFieldInterface
     /**
      * {@inheritdoc}
      */
+    public function isValueEmpty(mixed $value, ElementInterface $element): bool
+    {
+        return empty($value->startDate) && empty($value->endDate);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function modifyElementsQuery(ElementQueryInterface $query, mixed $value): void
     {
         // For whatever reason, this function can be

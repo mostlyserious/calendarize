@@ -8,6 +8,7 @@
     {%- if parent is defined %}data-if="{{parent}}" data-if-value="0"{% endif %}
     {%- if block('attr') is defined %} {{ block('attr') }}{% endif %}>
     {%- include "_includes/forms/text" with {
+        id: id,
         name: (name ? name~'[time]'),
         autocomplete: false,
         size: 10,
