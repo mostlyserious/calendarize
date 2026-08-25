@@ -50,7 +50,7 @@ class CalendarizeService extends Component
         }
         $prefixes = ['First', 'Second', 'Third', 'Fourth', 'Last'];
 
-        return $prefixes[floor($date->format('j') / 7)] . ' ' . $date->format('l');
+        return $prefixes[floor(($date->format('j') - 1) / 7)] . ' ' . $date->format('l');
     }
 
     public function weekOfMonth($date): string
@@ -60,7 +60,7 @@ class CalendarizeService extends Component
         }
         $prefixes = [1, 2, 3, 4, -1];
 
-        return $prefixes[floor($date->format('j') / 7)];
+        return $prefixes[floor(($date->format('j') - 1) / 7)];
     }
 
     public function nth($d)
