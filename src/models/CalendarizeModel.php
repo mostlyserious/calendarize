@@ -190,6 +190,14 @@ class CalendarizeModel extends Model
 
         // This event isnt in range just yet...
         if ($today->format('Y-m-d') < $this->startDate->format('Y-m-d')) {
+            if ($this->repeats) {
+                $occurrences = $this->getOccurrencesBetween($this->startDate, null, 1);
+
+                if (count($occurrences)) {
+                    return $occurrences[0];
+                }
+            }
+
             return new Occurrence($this->owner, $this->startDate, $duration);
         }
 
