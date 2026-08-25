@@ -90,8 +90,23 @@ class DefaultController extends Controller
     public function actionMakeSectionIcs(int $sectionId, int $siteId, int $fieldId, $relatedTo = null, $filename = null)
     {
         $field = FieldRecord::findOne($fieldId);
-        $fieldHandle = $field->handle;
         $section = Section::findOne($sectionId);
+
+        if (!$field || !$section) {
+            Craft::warning(
+                sprintf(
+                    'Invalid section ICS request for sectionId=%d fieldId=%d url=%s',
+                    $sectionId,
+                    $fieldId,
+                    Craft::$app->request->absoluteUrl
+                ),
+                __METHOD__
+            );
+
+            throw new NotFoundHttpException('Calendar not found.');
+        }
+
+        $fieldHandle = $field->handle;
 
         $entries = Entry::find()
             ->sectionId($sectionId)
