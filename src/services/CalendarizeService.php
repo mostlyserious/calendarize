@@ -108,6 +108,11 @@ class CalendarizeService extends Component
             $fieldIndex = array_search(CalendarizeField::class, array_map(function ($field) {
                 return get_class($field);
             }, $fields));
+
+            if ($fieldIndex === false) {
+                continue;
+            }
+
             $fieldHandle = $fields[$fieldIndex]->handle;
 
             $occurrences = $entry->{$fieldHandle}->getOccurrencesBetween($date, null, $unique ? 1 : null);
@@ -163,6 +168,11 @@ class CalendarizeService extends Component
             $fieldIndex = array_search(CalendarizeField::class, array_map(function ($field) {
                 return get_class($field);
             }, $fields));
+
+            if ($fieldIndex === false) {
+                continue;
+            }
+
             $fieldHandle = $fields[$fieldIndex]->handle;
 
             $occurrences = $entry->{$fieldHandle}->getOccurrencesBetween($start, $end, $unique ? 1 : null);
