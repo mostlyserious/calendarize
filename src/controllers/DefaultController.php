@@ -19,6 +19,7 @@ use craft\records\Section;
 use yii\web\NotFoundHttpException;
 use craft\records\Field as FieldRecord;
 use mostlyserious\calendarize\Calendarize;
+use mostlyserious\calendarize\fields\CalendarizeField;
 use mostlyserious\calendarize\models\CalendarizeModel;
 use mostlyserious\calendarize\records\CalendarizeRecord;
 
@@ -96,7 +97,7 @@ class DefaultController extends Controller
         $field = FieldRecord::findOne($fieldId);
         $section = Section::findOne($sectionId);
 
-        if (!$field || !$section) {
+        if (!$field || !$section || $field->type !== CalendarizeField::class) {
             Craft::warning(
                 sprintf(
                     'Invalid section ICS request for sectionId=%d fieldId=%d url=%s',
@@ -119,10 +120,14 @@ class DefaultController extends Controller
             ->all();
 
         $events = array_reduce($entries, function ($carry, $entry) use ($fieldHandle) {
-            if ($event = $entry->$fieldHandle) {
-                if ($event->startDate && $event->endDate) {
-                    $carry[] = $event;
-                }
+            if (!$entry->getFieldLayout()->getFieldByHandle($fieldHandle)) {
+                return $carry;
+            }
+
+            $event = $entry->getFieldValue($fieldHandle);
+
+            if ($event instanceof CalendarizeModel && $event->startDate && $event->endDate) {
+                $carry[] = $event;
             }
 
             return $carry;
