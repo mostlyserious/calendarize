@@ -124,6 +124,10 @@ class DefaultController extends Controller
             return $carry;
         }, []);
 
+        if (empty($events)) {
+            throw new NotFoundHttpException('No calendar events found.');
+        }
+
         $ics = Calendarize::$plugin->ics->makeEvents($events, $filename);
         $response = Craft::$app->getResponse();
 
