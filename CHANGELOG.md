@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.18 - 2026-08-25
+### Security
+- Fixed a path traversal vulnerability in the anonymous section ICS action that allowed writing attacker-influenced `.ics` files outside the storage directory. ICS downloads are now streamed directly and never written to disk, which also closes a disk exhaustion vector from unauthenticated requests.
+- ICS text values now escape backslashes and line breaks per RFC 5545, preventing calendar property injection via entry titles, and line breaks are stripped from URL values.
+- Invalid ICS requests (unknown fields or sections, non-Calendarize fields, sections without events) now return a 404 instead of a 500.
+
+### Fixed
+- Fixed an off-by-one in "nth weekday of the month" recurrence that put events starting on the 7th, 14th, 21st, or 28th on the wrong week every month.
+- Occurrence end times now keep their wall-clock duration across DST transitions instead of drifting by an hour.
+- Single-event ICS downloads are now valid VCALENDAR documents (terminating `END:VCALENDAR`, CRLF line endings).
+- ICS exports now use stable, globally unique UIDs so subscribed calendars update events instead of duplicating them on every refresh.
+- All-day events are now exported as date-only values with an exclusive end date and a matching date-only repeat cutoff.
+- Single-event ICS exports now load the owner element for the requested site instead of mixing content from the current site.
+- Required Calendarize fields now validate correctly instead of always counting as filled.
+- Occurrence queries now skip entries without a Calendarize field (previously an unrelated field could be read) and match subclasses of the field type.
+- `next()` now respects date exceptions, returns no occurrence when the recurrence set is fully excluded, and no longer errors on a missing end repeat date.
+- The repeat cutoff day is no longer excluded from recurrence sets built outside of `next()`.
+- The per-request entry cache no longer merges queries from the same hour.
+- Time inputs in the control panel now initialize the timepicker correctly.
+
 ## 1.2.17 - 2026-03-31
 ### Fixed
 - Return a 404 for invalid ICS download requests instead of throwing when the calendar record or owner element is missing.
