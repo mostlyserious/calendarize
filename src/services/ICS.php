@@ -70,7 +70,8 @@ class ICS extends Component
         return "BEGIN:VCALENDAR\n" .
                 "VERSION:2.0\n" .
                 "PRODID:-//CALENDARIZE Craft //EN\n" .
-                $this->_makeEvent($model);
+                $this->_makeEvent($model) .
+                "END:VCALENDAR\n";
     }
 
     /**
