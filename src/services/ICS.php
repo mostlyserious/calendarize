@@ -12,10 +12,8 @@
 
 namespace mostlyserious\calendarize\services;
 
-use Craft;
 use DateTime;
 use craft\base\Component;
-use craft\helpers\FileHelper;
 use mostlyserious\calendarize\models\CalendarizeModel;
 
 /**
@@ -62,43 +60,52 @@ class ICS extends Component
         return '/actions/calendarize/default/make-section-ics?' . $params;
     }
 
-    public function make(CalendarizeModel $model, $filename = null)
+    /**
+     * Build the ICS document for a single event
+     *
+     * @return string
+     */
+    public function make(CalendarizeModel $model)
     {
-        $owner = $model->getOwner();
-        $rule = $model->rrule()->getRRules()[0];
-        $filename = $filename ? $filename : $owner->slug;
-
         $cal = "BEGIN:VCALENDAR\n" .
                 "VERSION:2.0\n" .
                 "PRODID:-//CALENDARIZE Craft //EN\n" .
-                $this->_makeEvent($model);
+                $this->_makeEvent($model) .
+                "END:VCALENDAR\n";
 
-        $storage = Craft::$app->getPath()->getStoragePath();
-        $path = $storage . '/calendarize/' . $filename . '.ics';
-        $file = FileHelper::writeToFile($path, $cal);
-
-        return $path;
+        return $this->_crlf($cal);
     }
 
-    public function makeEvents($events, $filename = null)
+    /**
+     * Build the ICS document for a list of events
+     *
+     * @param  CalendarizeModel[] $events
+     * @return string
+     */
+    public function makeEvents($events)
     {
-
         $cal = "BEGIN:VCALENDAR\n" .
             "VERSION:2.0\n" .
             "PRODID:-//CALENDARIZE Craft //EN\n";
-        $filename = $filename ? $filename : $events[0]->getOwner()->getsection()->slug;
 
-        foreach ($events as $events) {
-            $cal .= $this->_makeEvent($events);
+        foreach ($events as $event) {
+            $cal .= $this->_makeEvent($event);
         }
 
         $cal .= "END:VCALENDAR\n";
 
-        $storage = Craft::$app->getPath()->getStoragePath();
-        $path = $storage . '/calendarize/' . $filename . '.ics';
-        $file = FileHelper::writeToFile($path, $cal);
+        return $this->_crlf($cal);
+    }
 
-        return $path;
+    /**
+     * Normalize line endings to the CRLF delimiter RFC 5545 requires
+     *
+     * @param  string $cal
+     * @return string
+     */
+    private function _crlf($cal)
+    {
+        return preg_replace('/\r\n?|\n/', "\r\n", $cal);
     }
 
     private function _makeEvent(CalendarizeModel $model)
@@ -109,14 +116,39 @@ class ICS extends Component
         $ics = "BEGIN:VEVENT\n";
 
         if ($model->startDate) {
-            $ics .= $rule->rfcString() . "\n";
-            $ics .= 'DTEND;TZID=' . ($model->endDate ?: $model->startDate)->getTimezone()->getName() . ':' . ($model->endDate ?: $model->startDate)->format('Ymd\THis') . "\n";
+            $end = $model->endDate ?: $model->startDate;
+
+            if ($model->allDay) {
+                $ics .= 'DTSTART;VALUE=DATE:' . $model->startDate->format('Ymd') . "\n";
+
+                if (preg_match('/^RRULE:.*$/m', $rule->rfcString(), $matches)) {
+                    $line = $matches[0];
+                    $until = $rule->getRule()['UNTIL'] ?? null;
+
+                    // UNTIL must match DTSTART's DATE value type. Format the
+                    // original local cutoff rather than truncating the UTC
+                    // timestamp, which loses a day in timezones ahead of UTC.
+                    if ($until instanceof DateTime) {
+                        $line = preg_replace('/UNTIL=\d{8}T\d{6}Z?/', 'UNTIL=' . $until->format('Ymd'), $line);
+                    } else {
+                        $line = preg_replace('/UNTIL=(\d{8})T\d{6}Z?/', 'UNTIL=$1', $line);
+                    }
+
+                    $ics .= $line . "\n";
+                }
+
+                // DTEND is exclusive for date-only values
+                $ics .= 'DTEND;VALUE=DATE:' . (clone $end)->modify('+1 day')->format('Ymd') . "\n";
+            } else {
+                $ics .= $rule->rfcString() . "\n";
+                $ics .= 'DTEND;TZID=' . $end->getTimezone()->getName() . ':' . $end->format('Ymd\THis') . "\n";
+            }
         }
 
         $ics .= 'SUMMARY:' . $this->_escapeString($owner->title) . "\n";
         $ics .= "DESCRIPTION:\n";
-        $ics .= 'URL;VALUE=URI:' . $owner->url . "\n";
-        $ics .= 'UID:' . uniqid() . "\n";
+        $ics .= 'URL;VALUE=URI:' . str_replace(["\r", "\n"], '', (string) $owner->url) . "\n";
+        $ics .= 'UID:calendarize-' . $owner->uid . '-' . $model->fieldId . '-' . $model->ownerSiteId . "\n";
 
         if ($model->startDate) {
             $ics .= 'DTSTAMP:' . $this->_dateToCal() . "\n";
@@ -143,13 +175,16 @@ class ICS extends Component
     }
 
     /**
-     * Escape characters
+     * Escape a TEXT value per RFC 5545 section 3.3.11
      *
      * @param  string $string String to be escaped
      * @return string
      */
     private function _escapeString($string)
     {
-        return preg_replace('/([\,;])/', '\\\$1', ($string) ? $string : '');
+        $string = str_replace('\\', '\\\\', (string) ($string ?? ''));
+        $string = str_replace(["\r\n", "\r", "\n"], '\n', $string);
+
+        return preg_replace('/([,;])/', '\\\$1', $string);
     }
 }

@@ -19,6 +19,7 @@ use craft\records\Section;
 use yii\web\NotFoundHttpException;
 use craft\records\Field as FieldRecord;
 use mostlyserious\calendarize\Calendarize;
+use mostlyserious\calendarize\fields\CalendarizeField;
 use mostlyserious\calendarize\models\CalendarizeModel;
 use mostlyserious\calendarize\records\CalendarizeRecord;
 
@@ -68,6 +69,7 @@ class DefaultController extends Controller
 
         $element = $owner->type::find()
             ->id($owner->id)
+            ->siteId($ownerSiteId)
             ->one();
 
         if (!$element) {
@@ -79,7 +81,10 @@ class DefaultController extends Controller
 
         $response = Craft::$app->getResponse();
 
-        return $response->sendFile($ics, null, ['inline' => true]);
+        return $response->sendContentAsFile($ics, $element->slug . '.ics', [
+            'mimeType' => 'text/calendar',
+            'inline' => true,
+        ]);
     }
 
     /**
@@ -90,8 +95,23 @@ class DefaultController extends Controller
     public function actionMakeSectionIcs(int $sectionId, int $siteId, int $fieldId, $relatedTo = null, $filename = null)
     {
         $field = FieldRecord::findOne($fieldId);
-        $fieldHandle = $field->handle;
         $section = Section::findOne($sectionId);
+
+        if (!$field || !$section || $field->type !== CalendarizeField::class) {
+            Craft::warning(
+                sprintf(
+                    'Invalid section ICS request for sectionId=%d fieldId=%d url=%s',
+                    $sectionId,
+                    $fieldId,
+                    Craft::$app->request->absoluteUrl
+                ),
+                __METHOD__
+            );
+
+            throw new NotFoundHttpException('Calendar not found.');
+        }
+
+        $fieldHandle = $field->handle;
 
         $entries = Entry::find()
             ->sectionId($sectionId)
@@ -100,19 +120,36 @@ class DefaultController extends Controller
             ->all();
 
         $events = array_reduce($entries, function ($carry, $entry) use ($fieldHandle) {
-            if ($event = $entry->$fieldHandle) {
-                if ($event->startDate && $event->endDate) {
-                    $carry[] = $event;
-                }
+            if (!$entry->getFieldLayout()->getFieldByHandle($fieldHandle)) {
+                return $carry;
+            }
+
+            $event = $entry->getFieldValue($fieldHandle);
+
+            if ($event instanceof CalendarizeModel && $event->startDate && $event->endDate) {
+                $carry[] = $event;
             }
 
             return $carry;
         }, []);
 
-        $ics = Calendarize::$plugin->ics->makeEvents($events, $filename);
+        if (empty($events)) {
+            throw new NotFoundHttpException('No calendar events found.');
+        }
+
+        $filename = $filename ? preg_replace('/[^A-Za-z0-9_\-]+/', '', $filename) : '';
+
+        if ($filename === '') {
+            $filename = $section->handle;
+        }
+
+        $ics = Calendarize::$plugin->ics->makeEvents($events);
         $response = Craft::$app->getResponse();
 
-        return $response->sendFile($ics, null, ['inline' => true]);
+        return $response->sendContentAsFile($ics, $filename . '.ics', [
+            'mimeType' => 'text/calendar',
+            'inline' => true,
+        ]);
     }
 
     private function handleMissingIcsRequest(int $ownerId, int $ownerSiteId, int $fieldId): never
