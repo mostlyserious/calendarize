@@ -200,7 +200,7 @@ class CalendarizeModel extends Model
             }
 
             // if it ends at somepoint and we are passed that date, return the last occurrence
-            if ($this->endRepeat !== 'never' && $today > $this->endRepeatDate) {
+            if ($this->endRepeat !== 'never' && !empty($this->endRepeatDate) && $today > $this->endRepeatDate) {
                 return new Occurrence($this->owner, $this->endRepeatDate, $diff);
             }
 
