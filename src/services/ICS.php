@@ -108,7 +108,7 @@ class ICS extends Component
 
         $ics .= 'SUMMARY:' . $this->_escapeString($owner->title) . "\n";
         $ics .= "DESCRIPTION:\n";
-        $ics .= 'URL;VALUE=URI:' . $owner->url . "\n";
+        $ics .= 'URL;VALUE=URI:' . str_replace(["\r", "\n"], '', (string) $owner->url) . "\n";
         $ics .= 'UID:' . uniqid() . "\n";
 
         if ($model->startDate) {
@@ -136,13 +136,16 @@ class ICS extends Component
     }
 
     /**
-     * Escape characters
+     * Escape a TEXT value per RFC 5545 section 3.3.11
      *
      * @param  string $string String to be escaped
      * @return string
      */
     private function _escapeString($string)
     {
-        return preg_replace('/([\,;])/', '\\\$1', ($string) ? $string : '');
+        $string = str_replace('\\', '\\\\', (string) ($string ?? ''));
+        $string = str_replace(["\r\n", "\r", "\n"], '\n', $string);
+
+        return preg_replace('/([,;])/', '\\\$1', $string);
     }
 }
