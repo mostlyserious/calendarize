@@ -104,16 +104,11 @@ class CalendarizeService extends Component
         $allOccurrences = [];
 
         foreach ($entries as $key => $entry) {
-            $fields = $entry->getFieldLayout()->getCustomFields();
-            $fieldIndex = array_search(CalendarizeField::class, array_map(function ($field) {
-                return get_class($field);
-            }, $fields));
+            $fieldHandle = $this->_calendarizeFieldHandle($entry);
 
-            if ($fieldIndex === false) {
+            if ($fieldHandle === null) {
                 continue;
             }
-
-            $fieldHandle = $fields[$fieldIndex]->handle;
 
             $occurrences = $entry->{$fieldHandle}->getOccurrencesBetween($date, null, $unique ? 1 : null);
 
@@ -164,16 +159,11 @@ class CalendarizeService extends Component
         $allOccurrences = [];
 
         foreach ($entries as $key => $entry) {
-            $fields = $entry->getFieldLayout()->getCustomFields();
-            $fieldIndex = array_search(CalendarizeField::class, array_map(function ($field) {
-                return get_class($field);
-            }, $fields));
+            $fieldHandle = $this->_calendarizeFieldHandle($entry);
 
-            if ($fieldIndex === false) {
+            if ($fieldHandle === null) {
                 continue;
             }
-
-            $fieldHandle = $fields[$fieldIndex]->handle;
 
             $occurrences = $entry->{$fieldHandle}->getOccurrencesBetween($start, $end, $unique ? 1 : null);
 
@@ -207,6 +197,23 @@ class CalendarizeService extends Component
         $today = DateTimeHelper::toDateTime(new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone())));
 
         return $this->after($today, $criteria, $order, $unique);
+    }
+
+    /**
+     * Returns the handle of the entry's Calendarize field, if it has one
+     *
+     * @param  Entry   $entry
+     * @return ?string
+     */
+    private function _calendarizeFieldHandle($entry)
+    {
+        foreach ($entry->getFieldLayout()->getCustomFields() as $field) {
+            if ($field instanceof CalendarizeField) {
+                return $field->handle;
+            }
+        }
+
+        return null;
     }
 
     /**
