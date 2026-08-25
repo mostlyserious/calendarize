@@ -67,11 +67,13 @@ class ICS extends Component
      */
     public function make(CalendarizeModel $model)
     {
-        return "BEGIN:VCALENDAR\n" .
+        $cal = "BEGIN:VCALENDAR\n" .
                 "VERSION:2.0\n" .
                 "PRODID:-//CALENDARIZE Craft //EN\n" .
                 $this->_makeEvent($model) .
                 "END:VCALENDAR\n";
+
+        return $this->_crlf($cal);
     }
 
     /**
@@ -92,7 +94,18 @@ class ICS extends Component
 
         $cal .= "END:VCALENDAR\n";
 
-        return $cal;
+        return $this->_crlf($cal);
+    }
+
+    /**
+     * Normalize line endings to the CRLF delimiter RFC 5545 requires
+     *
+     * @param  string $cal
+     * @return string
+     */
+    private function _crlf($cal)
+    {
+        return preg_replace('/\r\n?|\n/', "\r\n", $cal);
     }
 
     private function _makeEvent(CalendarizeModel $model)
