@@ -68,6 +68,7 @@ class DefaultController extends Controller
 
         $element = $owner->type::find()
             ->id($owner->id)
+            ->siteId($ownerSiteId)
             ->one();
 
         if (!$element) {
