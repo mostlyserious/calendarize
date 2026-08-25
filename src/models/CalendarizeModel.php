@@ -186,7 +186,7 @@ class CalendarizeModel extends Model
         $today = DateTimeHelper::toDateTime(new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone())));
         $numericValueOfToday = $today->format('w');
         $days = $this->days;
-        $duration = $this->startDate->diff($this->endDate);
+        $duration = $this->_duration();
 
         // This event isnt in range just yet...
         if ($today->format('Y-m-d') < $this->startDate->format('Y-m-d')) {
@@ -243,7 +243,7 @@ class CalendarizeModel extends Model
             return [];
         }
 
-        $duration = $this->startDate->diff($this->endDate);
+        $duration = $this->_duration();
         $occurrences = $this->rrule()->getOccurrences($limit);
 
         $this->_adjustTimeChanges($occurrences);
@@ -274,7 +274,7 @@ class CalendarizeModel extends Model
             $endDate = DateTimeHelper::toDateTime(new DateTime($endDate, new DateTimeZone(Craft::$app->getTimeZone())));
         }
 
-        $duration = $this->startDate->diff($this->endDate);
+        $duration = $this->_duration();
         $occurrences = $this->rrule()->getOccurrencesBetween($startDate, $endDate, $limit);
 
         $this->_adjustTimeChanges($occurrences);
@@ -422,6 +422,21 @@ class CalendarizeModel extends Model
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Wall-clock duration between the start and end dates. Both endpoints are
+     * normalized to UTC first because DateTime::diff() is DST-aware and would
+     * otherwise return elapsed time for events spanning a DST transition.
+     *
+     * @return \DateInterval
+     */
+    private function _duration()
+    {
+        $utc = new DateTimeZone('UTC');
+
+        return (new DateTime($this->startDate->format('Y-m-d H:i:s'), $utc))
+            ->diff(new DateTime($this->endDate->format('Y-m-d H:i:s'), $utc));
+    }
 
     private function _adjustTimeChanges(&$occurrences = [])
     {
