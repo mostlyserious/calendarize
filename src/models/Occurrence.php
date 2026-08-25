@@ -13,6 +13,7 @@
 namespace mostlyserious\calendarize\models;
 
 use DateTime;
+use DateInterval;
 use ReflectionClass;
 use craft\base\Element;
 
@@ -41,7 +42,7 @@ class Occurrence
      */
     public $end;
 
-    public function __construct(Element $element, DateTime $next, int $diff)
+    public function __construct(Element $element, DateTime $next, DateInterval|int $duration)
     {
         $this->element = $element;
         $this->next = $next;
@@ -49,9 +50,11 @@ class Occurrence
         // start and end date
         $this->start = $next;
 
-        // end date
+        // end date, preserving the wall-clock duration across DST transitions
         $end = clone $next;
-        $this->end = $end->modify($diff . ' seconds');
+        $this->end = $duration instanceof DateInterval
+            ? $end->add($duration)
+            : $end->modify($duration . ' seconds');
     }
 
     /**

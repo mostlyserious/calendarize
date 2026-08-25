@@ -227,14 +227,17 @@
 
     {% if value is defined and value.startDate %}
         <div class="calendar-data">
-            <p>
-                {% if value.hasPassed %}{{'Date'|t("calendarize")}}:{% else %}{{'Next Occurrence'|t("calendarize")}}:{% endif %}
-                {% if value.allDay %}
-                    <b>{{ value.next.format('m/d/Y') }}</b>
-                {% else %}
-                    <b>{{ value.next.format('m/d/Y @ h:i:s a') }}</b>
-                {% endif %}
-            </p>
+            {% set next = value.next %}
+            {% if next %}
+                <p>
+                    {% if value.hasPassed %}{{'Date'|t("calendarize")}}:{% else %}{{'Next Occurrence'|t("calendarize")}}:{% endif %}
+                    {% if value.allDay %}
+                        <b>{{ next.format('m/d/Y') }}</b>
+                    {% else %}
+                        <b>{{ next.format('m/d/Y @ h:i:s a') }}</b>
+                    {% endif %}
+                </p>
+            {% endif %}
             {% if value.repeats %}
                 <ul>
                     <li>{{'Occurrences'|t("calendarize")}}:</li>

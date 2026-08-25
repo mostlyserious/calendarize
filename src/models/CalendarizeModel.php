@@ -186,11 +186,22 @@ class CalendarizeModel extends Model
         $today = DateTimeHelper::toDateTime(new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone())));
         $numericValueOfToday = $today->format('w');
         $days = $this->days;
-        $diff = $this->endDate->getTimestamp() - $this->startDate->getTimestamp();
+        $duration = $this->_duration();
 
         // This event isnt in range just yet...
         if ($today->format('Y-m-d') < $this->startDate->format('Y-m-d')) {
-            return new Occurrence($this->owner, $this->startDate, $diff);
+            if ($this->repeats) {
+                $occurrences = $this->getOccurrencesBetween($this->startDate, null, 1);
+
+                if (count($occurrences)) {
+                    return $occurrences[0];
+                }
+
+                // the recurrence set is entirely excluded, so nothing occurs
+                return false;
+            }
+
+            return new Occurrence($this->owner, $this->startDate, $duration);
         }
 
         // if repeats find the next occurrence else return the start date
@@ -200,8 +211,8 @@ class CalendarizeModel extends Model
             }
 
             // if it ends at somepoint and we are passed that date, return the last occurrence
-            if ($this->endRepeat !== 'never' && $today > $this->endRepeatDate) {
-                return new Occurrence($this->owner, $this->endRepeatDate, $diff);
+            if ($this->endRepeat !== 'never' && !empty($this->endRepeatDate) && $today > $this->endRepeatDate) {
+                return new Occurrence($this->owner, $this->endRepeatDate, $duration);
             }
 
             $occurrences = $this->getOccurrencesBetween($today, null, 1);
@@ -211,7 +222,7 @@ class CalendarizeModel extends Model
 
                 if ($this->endRepeat !== 'never' && !empty($this->endRepeatDate)) {
                     if ($nextOffer > $this->endRepeatDate) {
-                        return new Occurrence($this->owner, $this->endRepeatDate, $diff);
+                        return new Occurrence($this->owner, $this->endRepeatDate, $duration);
                     }
                 }
 
@@ -219,7 +230,7 @@ class CalendarizeModel extends Model
             }
         }
 
-        return new Occurrence($this->owner, $this->startDate, $diff);
+        return new Occurrence($this->owner, $this->startDate, $duration);
     }
 
     /**
@@ -235,13 +246,13 @@ class CalendarizeModel extends Model
             return [];
         }
 
-        $diff = $this->endDate->getTimestamp() - $this->startDate->getTimestamp();
+        $duration = $this->_duration();
         $occurrences = $this->rrule()->getOccurrences($limit);
 
         $this->_adjustTimeChanges($occurrences);
 
-        return array_map(function ($occurrence) use ($diff) {
-            return new Occurrence($this->owner, $occurrence, $diff);
+        return array_map(function ($occurrence) use ($duration) {
+            return new Occurrence($this->owner, $occurrence, $duration);
         }, $occurrences);
     }
 
@@ -266,13 +277,13 @@ class CalendarizeModel extends Model
             $endDate = DateTimeHelper::toDateTime(new DateTime($endDate, new DateTimeZone(Craft::$app->getTimeZone())));
         }
 
-        $diff = $this->endDate->getTimestamp() - $this->startDate->getTimestamp();
+        $duration = $this->_duration();
         $occurrences = $this->rrule()->getOccurrencesBetween($startDate, $endDate, $limit);
 
         $this->_adjustTimeChanges($occurrences);
 
-        return array_map(function ($occurrence) use ($diff) {
-            return new Occurrence($this->owner, $occurrence, $diff);
+        return array_map(function ($occurrence) use ($duration) {
+            return new Occurrence($this->owner, $occurrence, $duration);
         }, $occurrences);
     }
 
@@ -287,9 +298,13 @@ class CalendarizeModel extends Model
             return false;
         }
 
-        $next = $this->next()->next;
+        $next = $this->next();
 
-        return DateTimeHelper::isInThePast($next);
+        if (!$next) {
+            return true;
+        }
+
+        return DateTimeHelper::isInThePast($next->next);
     }
 
     /**
@@ -315,6 +330,12 @@ class CalendarizeModel extends Model
     public function rrule()
     {
         if ($this->occurrenceCache === null) {
+            // align the repeat cutoff to the event start time so UNTIL does
+            // not exclude a final occurrence on the cutoff day itself
+            if ($this->repeats && !empty($this->endRepeatDate) && !empty($this->startDate)) {
+                $this->endRepeatDate->setTime($this->startDate->format('H'), $this->startDate->format('i'));
+            }
+
             if ($this->repeats) {
                 $config = [
                     'FREQ' => strtoupper(static::$RRULEMAP[$this->repeatType]),
@@ -414,6 +435,21 @@ class CalendarizeModel extends Model
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Wall-clock duration between the start and end dates. Both endpoints are
+     * normalized to UTC first because DateTime::diff() is DST-aware and would
+     * otherwise return elapsed time for events spanning a DST transition.
+     *
+     * @return \DateInterval
+     */
+    private function _duration()
+    {
+        $utc = new DateTimeZone('UTC');
+
+        return (new DateTime($this->startDate->format('Y-m-d H:i:s'), $utc))
+            ->diff(new DateTime($this->endDate->format('Y-m-d H:i:s'), $utc));
+    }
 
     private function _adjustTimeChanges(&$occurrences = [])
     {
