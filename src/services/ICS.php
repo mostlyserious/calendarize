@@ -122,8 +122,19 @@ class ICS extends Component
                 $ics .= 'DTSTART;VALUE=DATE:' . $model->startDate->format('Ymd') . "\n";
 
                 if (preg_match('/^RRULE:.*$/m', $rule->rfcString(), $matches)) {
-                    // UNTIL must match DTSTART's DATE value type
-                    $ics .= preg_replace('/UNTIL=(\d{8})T\d{6}Z?/', 'UNTIL=$1', $matches[0]) . "\n";
+                    $line = $matches[0];
+                    $until = $rule->getRule()['UNTIL'] ?? null;
+
+                    // UNTIL must match DTSTART's DATE value type. Format the
+                    // original local cutoff rather than truncating the UTC
+                    // timestamp, which loses a day in timezones ahead of UTC.
+                    if ($until instanceof DateTime) {
+                        $line = preg_replace('/UNTIL=\d{8}T\d{6}Z?/', 'UNTIL=' . $until->format('Ymd'), $line);
+                    } else {
+                        $line = preg_replace('/UNTIL=(\d{8})T\d{6}Z?/', 'UNTIL=$1', $line);
+                    }
+
+                    $ics .= $line . "\n";
                 }
 
                 // DTEND is exclusive for date-only values
