@@ -103,8 +103,21 @@ class ICS extends Component
         $ics = "BEGIN:VEVENT\n";
 
         if ($model->startDate) {
-            $ics .= $rule->rfcString() . "\n";
-            $ics .= 'DTEND;TZID=' . ($model->endDate ?: $model->startDate)->getTimezone()->getName() . ':' . ($model->endDate ?: $model->startDate)->format('Ymd\THis') . "\n";
+            $end = $model->endDate ?: $model->startDate;
+
+            if ($model->allDay) {
+                $ics .= 'DTSTART;VALUE=DATE:' . $model->startDate->format('Ymd') . "\n";
+
+                if (preg_match('/^RRULE:.*$/m', $rule->rfcString(), $matches)) {
+                    $ics .= $matches[0] . "\n";
+                }
+
+                // DTEND is exclusive for date-only values
+                $ics .= 'DTEND;VALUE=DATE:' . (clone $end)->modify('+1 day')->format('Ymd') . "\n";
+            } else {
+                $ics .= $rule->rfcString() . "\n";
+                $ics .= 'DTEND;TZID=' . $end->getTimezone()->getName() . ':' . $end->format('Ymd\THis') . "\n";
+            }
         }
 
         $ics .= 'SUMMARY:' . $this->_escapeString($owner->title) . "\n";
