@@ -124,7 +124,7 @@ class ICS extends Component
         $ics .= 'SUMMARY:' . $this->_escapeString($owner->title) . "\n";
         $ics .= "DESCRIPTION:\n";
         $ics .= 'URL;VALUE=URI:' . str_replace(["\r", "\n"], '', (string) $owner->url) . "\n";
-        $ics .= 'UID:calendarize-' . $model->fieldId . '-' . $model->ownerId . '-' . $model->ownerSiteId . "\n";
+        $ics .= 'UID:calendarize-' . $owner->uid . '-' . $model->fieldId . '-' . $model->ownerSiteId . "\n";
 
         if ($model->startDate) {
             $ics .= 'DTSTAMP:' . $this->_dateToCal() . "\n";
